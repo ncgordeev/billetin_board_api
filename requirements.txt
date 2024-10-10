@@ -7,3 +7,4 @@ drf-yasg==1.21.7
 django-cors-headers==4.4.0
 django-filter==24.2
 pillow==10.4.0
+isort==5.13.2

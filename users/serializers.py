@@ -15,6 +15,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ['first_name', 'last_name', 'password', 'phone', 'email', 'role', 'image']
 
+    def validate_role(self, value):
+        if value not in ['admin', 'user']:
+            raise serializers.ValidationError('Недопустимая роль!')
+        return value
+
+    def create(self, validated_data):
+        user = User(**validated_data)
+        user.is_active = True
+        if user.role == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
     """Класс сериализатор отображения профиля пользователя"""
@@ -54,8 +69,12 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(min_length=8)
 
     def validate(self, attrs):
-        uid = attrs.get('uid')
-        token = attrs.get('token')
+        uid = self.context.get('view').kwargs.get('uid')
+        if not uid:
+            uid = attrs.get('uid')
+        token = self.context.get('view').kwargs.get('token')
+        if not token:
+            token = attrs.get('token')
         new_password = attrs.get('new_password')
         user_id = urlsafe_base64_decode(uid)
         try:
@@ -67,7 +86,9 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
         return attrs
 
     def save(self):
-        uid = self.validated_data['uid']
+        uid = self.context.get('view').kwargs.get('uid')
+        if not uid:
+            uid = self.validated_data['uid']
         user_id = urlsafe_base64_decode(uid)
         new_password = self.validated_data['new_password']
         user = User.objects.get(pk=user_id)

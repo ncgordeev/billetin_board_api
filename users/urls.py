@@ -17,5 +17,6 @@ urlpatterns = [
     path('detail/<int:pk>/', UserRetrieveAPIView.as_view(), name='user_detail'),
     path('delete/<int:pk>/', UserDestroyAPIView.as_view(), name='user_delete'),
     path('reset_password/', UserPasswordResetAPIView.as_view(), name='password_reset'),
-    path('reset_password_confirm/', UserPasswordResetConfirmAPIView.as_view(), name='password_reset_confirm'),
+    path('reset_password_confirm/<str:uid>/<str:token>/', UserPasswordResetConfirmAPIView.as_view(),
+         name='password_reset_confirm'),
 ]

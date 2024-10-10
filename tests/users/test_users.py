@@ -57,7 +57,7 @@ class TestUsers:
                            for err in error_messages['role'])
             elif 'email' in error_messages:
                 assert any("Данный email уже зарегистрирован!" in str(err) or
-                           "Пользователь с таким Почта уже существует." in str(err)
+                           "Пользователь с таким email-адресом уже существует." in str(err)
                            for err in error_messages['email'])
 
     @pytest.mark.parametrize("auth_user, target_user, expected_status", [

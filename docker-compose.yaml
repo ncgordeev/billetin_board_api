@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .env.docker
+    environment:
+      - ENVIRONMENT=docker
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}  -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  api:
+    build: .
+    tty: true
+    env_file:
+      - .env.docker
+    environment:
+      - ENVIRONMENT=docker
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+      - media_volume:/code/media
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  media_volume:
+
+networks:
+  backend:

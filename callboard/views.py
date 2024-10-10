@@ -12,6 +12,7 @@ from users.permissions import IsAutor
 
 
 class AdListAPIView(generics.ListAPIView):
+    """Эндпоинт просмотра списка объявлений"""
     serializer_class = AdListSerializer
     permission_classes = [AllowAny]
     queryset = Ad.objects.all()
@@ -21,11 +22,13 @@ class AdListAPIView(generics.ListAPIView):
 
 
 class AdRetrieveAPIView(generics.RetrieveAPIView):
+    """Эндпоинт просмотра одного объявления"""
     serializer_class = AdRetrieveSerializer
     queryset = Ad.objects.all()
 
 
 class AdCreateAPIView(generics.CreateAPIView):
+    """Эндпоинт создания объявления"""
     serializer_class = AdSerializer
     queryset = Ad.objects.all()
 
@@ -34,17 +37,20 @@ class AdCreateAPIView(generics.CreateAPIView):
 
 
 class AdUpdateAPIView(generics.UpdateAPIView):
+    """Эндпоинт изменения объявления"""
     permission_classes = [IsAdminUser | IsAutor]
     serializer_class = AdSerializer
     queryset = Ad.objects.all()
 
 
 class AdDestroyAPIView(generics.DestroyAPIView):
+    """Эндпоинт удаления объявления"""
     permission_classes = [IsAdminUser | IsAutor]
     queryset = Ad.objects.all()
 
 
 class ReviewAPIViewSet(viewsets.ModelViewSet):
+    """ViewSet для комментариев"""
     queryset = Review.objects.all()
 
     def get_queryset(self):

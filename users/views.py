@@ -2,7 +2,7 @@ from rest_framework import generics, response, status
 from rest_framework.permissions import AllowAny
 
 from users.models import User
-from users.permissions import IsOwner
+from users.permissions import IsOwnerOrAdmin
 from users.serializers import (UserPasswordResetConfirmSerializer,
                                UserPasswordResetSerializer,
                                UserRegistrationSerializer,
@@ -26,7 +26,7 @@ class UserUpdateAPIView(generics.UpdateAPIView):
     """Эндпоинт редактирования пользователя"""
     serializer_class = UserRegistrationSerializer
     queryset = User.objects.all()
-    permission_classes = [IsOwner]
+    permission_classes = [IsOwnerOrAdmin]
 
     def perform_update(self, serializer):
         user = serializer.save(is_active=True)
@@ -38,13 +38,13 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
     """Эндпоинт просмотра пользователя"""
     serializer_class = UserRetrieveSerializer
     queryset = User.objects.all()
-    permission_classes = [IsOwner]
+    permission_classes = [IsOwnerOrAdmin]
 
 
 class UserDestroyAPIView(generics.DestroyAPIView):
     """Эндпоинт удаления пользователя"""
     queryset = User.objects.all()
-    permission_classes = [IsOwner]
+    permission_classes = [IsOwnerOrAdmin]
 
 
 class UserPasswordResetAPIView(generics.GenericAPIView):

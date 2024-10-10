@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import serializers
 
@@ -15,18 +15,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ['first_name', 'last_name', 'password', 'phone', 'email', 'role', 'image']
 
-    def validate_role(self, value):
-        if value not in ['admin', 'user']:
-            raise serializers.ValidationError('Недопустимая роль!')
-        return value
-
-    def create(self, validated_data):
-        user = User(**validated_data)
+    def create(self, data):
+        user = User(**data)
         user.is_active = True
-        if user.role == 'admin':
+        if user.role == User.UsersRolesChoices.ADMIN:
             user.is_staff = True
             user.is_superuser = True
-        user.set_password(validated_data['password'])
+        user.set_password(data['password'])
         user.save()
         return user
 
@@ -69,26 +64,23 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(min_length=8)
 
     def validate(self, attrs):
-        uid = self.context.get('view').kwargs.get('uid')
-        if not uid:
-            uid = attrs.get('uid')
-        token = self.context.get('view').kwargs.get('token')
-        if not token:
-            token = attrs.get('token')
+        uid = attrs.get('uid')
+        token = attrs.get('token')
         new_password = attrs.get('new_password')
-        user_id = urlsafe_base64_decode(uid)
+
         try:
+            user_id = urlsafe_base64_decode(uid)
             user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("Невалидный UID.")
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError({"detail": "Невалидный UID."})
+
         if not default_token_generator.check_token(user, token):
-            raise serializers.ValidationError("Невалидный токен.")
+            raise serializers.ValidationError({"detail": "Невалидный токен."})
+        attrs['user'] = user
         return attrs
 
     def save(self):
-        uid = self.context.get('view').kwargs.get('uid')
-        if not uid:
-            uid = self.validated_data['uid']
+        uid = self.validated_data['uid']
         user_id = urlsafe_base64_decode(uid)
         new_password = self.validated_data['new_password']
         user = User.objects.get(pk=user_id)
